@@ -1,13 +1,17 @@
 package com.example.winesommelier;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,9 +33,8 @@ public class MainActivity extends AppCompatActivity {
     ListView recommendationListView;
     Spinner spinnerPrice, spinnerAlcohol, spinnerRating, spinnerWinery, spinnerCategory;
 
-    // Adapters for auto-complete and list view
+    // Adapters for auto-complete
     ArrayAdapter<String> autoCompleteAdapter;
-    ArrayAdapter<String> recommendationAdapter;
 
     // Data storage
     List<Wine> allWines;           // All wines loaded from CSV
@@ -71,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 tfidfMatrix = MatrixMarketParser.loadSparseMatrix(MainActivity.this, "wine_review_TFIDF.mtx");
-                // Now the engine constructor takes a List<Wine> instead of separate lists
                 engine = new RecommendationEngine(tfidfMatrix, allWines);
                 Log.d("MainActivity", "TFIDF matrix and recommendation engine loaded.");
             }
@@ -111,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
                     int idx = indices.get(i);
                     recommendedWines.add(allWines.get(idx));
                 }
-                // Populate the filter spinners using the recommended wines
+                // Populate the filter spinners using the recommended wines and static ranges
                 populateFilterSpinners();
 
                 // Display only the top 10 wines on initial recommendation
@@ -123,8 +125,6 @@ public class MainActivity extends AppCompatActivity {
                 updateListView(top10Wines);
             }
         });
-
-
     }
 
     // Loads wine data from CSV (assumes the file "preprocessed_reviews.csv" is in assets)
@@ -166,41 +166,56 @@ public class MainActivity extends AppCompatActivity {
         return wines;
     }
 
-    // Populate the five filter spinners with unique values from recommendedWines
+    // Populate the filter spinners with range options for price, alcohol, and rating,
+    // and unique values for winery and category.
     private void populateFilterSpinners() {
-        Set<String> prices = new HashSet<>();
-        Set<String> alcohols = new HashSet<>();
-        Set<String> ratings = new HashSet<>();
-        Set<String> wineries = new HashSet<>();
-        Set<String> categories = new HashSet<>();
-        for (Wine w : recommendedWines) {
-            prices.add(w.price);
-            alcohols.add(w.alcohol);
-            ratings.add(w.rating);
-            wineries.add(w.winery);
-            categories.add(w.category);
-        }
+        // --- Price range options ---
         List<String> priceList = new ArrayList<>();
         priceList.add("All");
-        priceList.addAll(prices);
+        priceList.add("$0 - $10");
+        priceList.add("$10 - $20");
+        priceList.add("$20 - $30");
+        priceList.add("$30 - $40");
+        priceList.add("$40+");
+        spinnerPrice.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, priceList));
+
+        // --- Alcohol range options ---
         List<String> alcoholList = new ArrayList<>();
         alcoholList.add("All");
-        alcoholList.addAll(alcohols);
+        alcoholList.add("Below 12%");
+        alcoholList.add("12% - 13%");
+        alcoholList.add("13% - 14%");
+        alcoholList.add("Above 14%");
+        spinnerAlcohol.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, alcoholList));
+
+        // --- Rating range options ---
         List<String> ratingList = new ArrayList<>();
         ratingList.add("All");
-        ratingList.addAll(ratings);
+        ratingList.add(">= 5");
+        ratingList.add(">= 6");
+        ratingList.add(">= 7");
+        ratingList.add(">= 8");
+        ratingList.add(">= 9");
+        spinnerRating.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, ratingList));
+
+        // --- Winery: Unique values ---
+        Set<String> winerySet = new HashSet<>();
+        for (Wine w : recommendedWines) {
+            winerySet.add(w.winery);
+        }
         List<String> wineryList = new ArrayList<>();
         wineryList.add("All");
-        wineryList.addAll(wineries);
+        wineryList.addAll(winerySet);
+        spinnerWinery.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, wineryList));
+
+        // --- Category: Unique values ---
+        Set<String> categorySet = new HashSet<>();
+        for (Wine w : recommendedWines) {
+            categorySet.add(w.category);
+        }
         List<String> categoryList = new ArrayList<>();
         categoryList.add("All");
-        categoryList.addAll(categories);
-
-        // Create and set adapters for each spinner
-        spinnerPrice.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, priceList));
-        spinnerAlcohol.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, alcoholList));
-        spinnerRating.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, ratingList));
-        spinnerWinery.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, wineryList));
+        categoryList.addAll(categorySet);
         spinnerCategory.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryList));
 
         // Set listeners so that any spinner selection change triggers filtering.
@@ -227,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Filters the recommendedWines based on spinner selections and updates the ListView.
+    // The filtering logic uses numeric comparisons for price, alcohol, and rating.
     private void updateFilteredResults() {
         if (recommendedWines == null) return;
         String selPrice = spinnerPrice.getSelectedItem().toString();
@@ -235,29 +251,105 @@ public class MainActivity extends AppCompatActivity {
         String selWinery = spinnerWinery.getSelectedItem().toString();
         String selCategory = spinnerCategory.getSelectedItem().toString();
 
+        Log.d("MainActivity", "Filtering with - Price: " + selPrice + ", Alcohol: " + selAlcohol +
+                ", Rating: " + selRating + ", Winery: " + selWinery + ", Category: " + selCategory);
+
         List<Wine> filtered = new ArrayList<>();
         for (Wine w : recommendedWines) {
-            if ((selPrice.equals("All") || w.price.equals(selPrice)) &&
-                    (selAlcohol.equals("All") || w.alcohol.equals(selAlcohol)) &&
-                    (selRating.equals("All") || w.rating.equals(selRating)) &&
-                    (selWinery.equals("All") || w.winery.equals(selWinery)) &&
-                    (selCategory.equals("All") || w.category.equals(selCategory))) {
-                filtered.add(w);
+            // --- Price filtering ---
+            if (!selPrice.equals("All")) {
+                try {
+                    double priceValue = Double.parseDouble(w.price.replaceAll("[$]", ""));
+                    if (selPrice.equals("$0 - $10") && !(priceValue >= 0 && priceValue < 10)) continue;
+                    else if (selPrice.equals("$10 - $20") && !(priceValue >= 10 && priceValue < 20)) continue;
+                    else if (selPrice.equals("$20 - $30") && !(priceValue >= 20 && priceValue < 30)) continue;
+                    else if (selPrice.equals("$30 - $40") && !(priceValue >= 30 && priceValue < 40)) continue;
+                    else if (selPrice.equals("$40+") && !(priceValue >= 40)) continue;
+                } catch (NumberFormatException e) {
+                    continue;
+                }
             }
+
+            // --- Alcohol filtering ---
+            if (!selAlcohol.equals("All")) {
+                try {
+                    double alcValue = Double.parseDouble(w.alcohol.replaceAll("[%]", ""));
+                    if (selAlcohol.equals("Below 12%") && !(alcValue < 12)) continue;
+                    else if (selAlcohol.equals("12% - 13%") && !(alcValue >= 12 && alcValue < 13)) continue;
+                    else if (selAlcohol.equals("13% - 14%") && !(alcValue >= 13 && alcValue < 14)) continue;
+                    else if (selAlcohol.equals("Above 14%") && !(alcValue >= 14)) continue;
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+            }
+
+            // --- Rating filtering ---
+            if (!selRating.equals("All")) {
+                try {
+                    double rateValue = Double.parseDouble(w.rating);
+                    if (selRating.equals(">= 5") && !(rateValue >= 5)) continue;
+                    else if (selRating.equals(">= 6") && !(rateValue >= 6)) continue;
+                    else if (selRating.equals(">= 7") && !(rateValue >= 7)) continue;
+                    else if (selRating.equals(">= 8") && !(rateValue >= 8)) continue;
+                    else if (selRating.equals(">= 9") && !(rateValue >= 9)) continue;
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+            }
+
+            // --- Winery filtering (exact match) ---
+            if (!selWinery.equals("All") && !w.winery.equals(selWinery)) continue;
+
+            // --- Category filtering (exact match) ---
+            if (!selCategory.equals("All") && !w.category.equals(selCategory)) continue;
+
+            filtered.add(w);
         }
+
+        Log.d("MainActivity", "Filtered list size: " + filtered.size());
         updateListView(filtered);
     }
 
-    // Update the ListView with the given list of wines.
+    // Update the ListView with the given list of wines, showing at most 10 items.
     private void updateListView(List<Wine> wines) {
-        List<String> display = new ArrayList<>();
-        for (Wine w : wines) {
-            display.add("Wine: " + w.name + "\nWinery: " + w.winery +
-                    "\nPrice: " + w.price + "\nAlcohol: " + w.alcohol +
-                    "\nRating: " + w.rating + "\nReview: " + w.review);
+        int maxItems = 10;
+        int sizeToDisplay = Math.min(wines.size(), maxItems);
+        List<Wine> truncatedWines = new ArrayList<>(wines.subList(0, sizeToDisplay));
+        Log.d("MainActivity", "Updating ListView with " + truncatedWines.size() +
+                " wines (truncated from " + wines.size() + ").");
+
+        // Use the custom adapter to inflate each wine as a CardView.
+        WineAdapter adapter = new WineAdapter(this, truncatedWines);
+        recommendationListView.setAdapter(adapter);
+    }
+
+    // Custom adapter class that inflates wine_item.xml for each wine.
+    public class WineAdapter extends ArrayAdapter<Wine> {
+
+        public WineAdapter(Context context, List<Wine> wines) {
+            super(context, 0, wines);
         }
-        recommendationAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, display);
-        recommendationListView.setAdapter(recommendationAdapter);
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if(convertView == null){
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.wine_item, parent, false);
+            }
+            Wine wine = getItem(position);
+            TextView tvWineName = convertView.findViewById(R.id.tvWineName);
+            TextView tvWinery = convertView.findViewById(R.id.tvWinery);
+            TextView tvPrice = convertView.findViewById(R.id.tvPrice);
+            TextView tvAlcohol = convertView.findViewById(R.id.tvAlcohol);
+            TextView tvRating = convertView.findViewById(R.id.tvRating);
+            TextView tvReview = convertView.findViewById(R.id.tvReview);
+
+            tvWineName.setText("Wine: " + wine.name);
+            tvWinery.setText("Winery: " + wine.winery);
+            tvPrice.setText("Price: " + wine.price);
+            tvAlcohol.setText("Alcohol: " + wine.alcohol);
+            tvRating.setText("Rating: " + wine.rating);
+            tvReview.setText("Review: " + wine.review);
+            return convertView;
+        }
     }
 }
