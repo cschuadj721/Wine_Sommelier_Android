@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Text and basic colors -->
+    <color name="primaryTextColor">#212121</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- Button color (light purplish) -->
+    <color name="lightPurple">#D1C4E9</color>
+
+    <!-- Dark divider for ListView -->
+    <color name="darkDivider">#5D4037</color>
+
+    <!-- Additional colors if needed -->
+    <color name="backgroundColor">#F3E5F5</color>
 </resources>

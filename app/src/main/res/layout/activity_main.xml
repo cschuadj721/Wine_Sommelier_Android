@@ -1,84 +1,190 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootLayout"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@drawable/winery_background">
 
-    <!-- Input Section -->
-    <AutoCompleteTextView
-        android:id="@+id/wineAutoComplete"
+    <!-- Top portion with title, input, filters, etc. -->
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter wine name" />
-
-    <Button
-        android:id="@+id/btnRecommend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Get Recommendations"
-        android:layout_marginTop="8dp"/>
-
-    <!-- Filter Section -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="16dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Price:"/>
-        <Spinner
-            android:id="@+id/spinnerPrice"
+        android:fillViewport="true">
+        <LinearLayout
+            android:id="@+id/rootLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Alcohol:"/>
-        <Spinner
-            android:id="@+id/spinnerAlcohol"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Rating:"/>
-        <Spinner
-            android:id="@+id/spinnerRating"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <!-- Title Label -->
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="AI Wine Sommelier"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/lightPurple"
+                android:gravity="center"
+                android:layout_marginBottom="24dp"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Winery:"/>
-        <Spinner
-            android:id="@+id/spinnerWinery"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <!-- Wine Name Input -->
+            <AutoCompleteTextView
+                android:id="@+id/wineAutoComplete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter wine name"
+                android:padding="12dp"
+                android:background="@drawable/edittext_background"
+                android:layout_marginBottom="16dp"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Category:"/>
-        <Spinner
-            android:id="@+id/spinnerCategory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+            <!-- Recommendation Button -->
+            <Button
+                android:id="@+id/btnRecommend"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Get Recommendations"
+                android:backgroundTint="@color/lightPurple"
+                android:textColor="@android:color/white"
+                android:textSize="19sp"
+                android:padding="12dp"
+                android:layout_marginBottom="24dp"/>
 
-    <!-- ListView for Recommendations -->
+            <!-- Filter Section in a CardView -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- First Row: Price, Alcohol, Rating -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="3"
+                        android:layout_marginBottom="16dp">
+                        <!-- Price Filter -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Price"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp"/>
+                            <Spinner
+                                android:id="@+id/spinnerPrice"
+                                style="@style/CustomSpinnerStyle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <!-- Alcohol Filter -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Alcohol"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp"/>
+                            <Spinner
+                                android:id="@+id/spinnerAlcohol"
+                                style="@style/CustomSpinnerStyle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <!-- Rating Filter -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Rating"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp"/>
+                            <Spinner
+                                android:id="@+id/spinnerRating"
+                                style="@style/CustomSpinnerStyle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Second Row: Winery, Category -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="2">
+                        <!-- Winery Filter -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Winery"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp"/>
+                            <Spinner
+                                android:id="@+id/spinnerWinery"
+                                style="@style/CustomSpinnerStyle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <!-- Category Filter -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Category"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp"/>
+                            <Spinner
+                                android:id="@+id/spinnerCategory"
+                                style="@style/CustomSpinnerStyle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Recommendations List: placed outside the ScrollView to fill remaining space -->
     <ListView
         android:id="@+id/recommendationListView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="16dp"/>
+        android:background="@android:color/transparent"
+        android:divider="@color/darkDivider"
+        android:dividerHeight="1dp"/>
 </LinearLayout>

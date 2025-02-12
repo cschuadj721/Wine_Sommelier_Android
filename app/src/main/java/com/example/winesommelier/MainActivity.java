@@ -174,9 +174,10 @@ public class MainActivity extends AppCompatActivity {
         priceList.add("All");
         priceList.add("$0 - $10");
         priceList.add("$10 - $20");
-        priceList.add("$20 - $30");
-        priceList.add("$30 - $40");
-        priceList.add("$40+");
+        priceList.add("$20 - $40");
+        priceList.add("$40 - $80");
+        priceList.add("$80 - $150");
+        priceList.add("$150+");
         spinnerPrice.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, priceList));
 
         // --- Alcohol range options ---
@@ -196,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
         ratingList.add(">= 7");
         ratingList.add(">= 8");
         ratingList.add(">= 9");
+        ratingList.add("< 9");
         spinnerRating.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, ratingList));
 
         // --- Winery: Unique values ---
@@ -262,9 +264,10 @@ public class MainActivity extends AppCompatActivity {
                     double priceValue = Double.parseDouble(w.price.replaceAll("[$]", ""));
                     if (selPrice.equals("$0 - $10") && !(priceValue >= 0 && priceValue < 10)) continue;
                     else if (selPrice.equals("$10 - $20") && !(priceValue >= 10 && priceValue < 20)) continue;
-                    else if (selPrice.equals("$20 - $30") && !(priceValue >= 20 && priceValue < 30)) continue;
-                    else if (selPrice.equals("$30 - $40") && !(priceValue >= 30 && priceValue < 40)) continue;
-                    else if (selPrice.equals("$40+") && !(priceValue >= 40)) continue;
+                    else if (selPrice.equals("$20 - $40") && !(priceValue >= 20 && priceValue < 40)) continue;
+                    else if (selPrice.equals("$40 - $80") && !(priceValue >= 40 && priceValue < 80)) continue;
+                    else if (selPrice.equals("$80 - $150") && !(priceValue >= 80 && priceValue < 150)) continue;
+                    else if (selPrice.equals("$150+") && !(priceValue >= 150)) continue;
                 } catch (NumberFormatException e) {
                     continue;
                 }
@@ -292,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
                     else if (selRating.equals(">= 7") && !(rateValue >= 7)) continue;
                     else if (selRating.equals(">= 8") && !(rateValue >= 8)) continue;
                     else if (selRating.equals(">= 9") && !(rateValue >= 9)) continue;
+                    else if (selRating.equals("< 9") && !(rateValue < 9)) continue;
                 } catch (NumberFormatException e) {
                     continue;
                 }
